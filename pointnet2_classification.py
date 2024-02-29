@@ -1,4 +1,4 @@
-import os.path as osp
+import os, os.path as osp
 
 import torch
 import torch.nn.functional as F
@@ -89,15 +89,12 @@ def test(loader):
 
 
 if __name__ == '__main__':
-    path = osp.join(osp.dirname(osp.realpath(__file__)), '..',
-                    'data/ModelNet10')
+    path = osp.join(osp.dirname(osp.realpath(__file__)), 'data/ModelNet10')
     pre_transform, transform = T.NormalizeScale(), T.SamplePoints(1024)
     train_dataset = ModelNet(path, '10', True, transform, pre_transform)
     test_dataset = ModelNet(path, '10', False, transform, pre_transform)
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True,
-                              num_workers=6)
-    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False,
-                             num_workers=6)
+    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = Net().to(device)
@@ -107,3 +104,8 @@ if __name__ == '__main__':
         train(epoch)
         test_acc = test(test_loader)
         print(f'Epoch: {epoch:03d}, Test: {test_acc:.4f}')
+        expname="runs/pointnet2_classification/"
+        os.makedirs(osp.dirname(expname), exist_ok=True)
+        with open(osp.join(expname, 'vanilla.txt'), 'a') as fi:
+            fi.write(f'Epoch: {epoch:03d}, Test: {test_acc:.4f}\n') 
+
